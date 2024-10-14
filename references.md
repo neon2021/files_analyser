@@ -44,3 +44,47 @@ https://lucene.apache.org/core/6_4_0/analyzers-smartcn/org/apache/lucene/analysi
 Apache Lucene™ 9.11.1 Documentation
 https://lucene.apache.org/core/9_11_1/index.html
 
+
+# Git
+
+## techniques
+
+```shell
+% git remote -v
+
+(output)
+origin	git@github.com:neon2021/files_analyser.git (fetch)
+origin	git@github.com:neon2021/files_analyser.git (push)
+```
+
+```shell
+% git push
+
+(output)
+# get some error response
+```
+
+> check .ssh/config
+
+```shell
+... ...
+
+Host neon2021
+  HostName github.com
+  AddKeysToAgent yes
+  UseKeychain yes
+  IdentityFile ~/.ssh/id_rsa_xxxxxx
+  IdentitiesOnly yes
+
+... ...
+```
+
+> modify git config for the repository
+
+```shell
+% git remote set-url origin git@neon2021:neon2021/files_analyser.git
+
+% git push
+
+(output successful response)
+```
