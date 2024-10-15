@@ -28,14 +28,10 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<tika-version>2.9.2</tika-version>
+		<lucene.version>8.11.1</lucene.version>
 	</properties>
 	<dependencies>
-		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-			<version>3.12.0</version>
-		</dependency>
 
 		<dependency>
 			<groupId>com.google.guava</groupId>
@@ -71,7 +67,16 @@
 			<artifactId>blake2b</artifactId>
 			<version>2.0.0</version>
 		</dependency>
-		<dependency>
+
+		<!-- conflict with tika begin -->
+
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+		<!-- <dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.12.0</version>
+		</dependency> -->
+		<!-- <dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
 			<version>1.17.1</version>
@@ -79,8 +84,9 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.17.0</version>
-		</dependency>
+			<version>2.11.0</version>
+		</dependency> -->
+		<!-- conflict with tika end -->
 
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -94,6 +100,40 @@
 			<version>5.8.0</version>
 			<scope>test</scope>
 	   </dependency>
+
+<!--		lucene imports, sourced from : Lucene Tutorial: Getting Started (with Examples) – HowToDoInJava-->
+<!--		https://howtodoinjava.com/lucene/lucene-index-search-examples/-->
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-core</artifactId>
+			<version>${lucene.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-analyzers-common</artifactId>
+			<version>${lucene.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-queryparser</artifactId>
+			<version>${lucene.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-core</artifactId>
+			<version>${tika-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-parsers-standard-package</artifactId>
+			<version>${tika-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-parser-pdf-module</artifactId>
+			<version>${tika-version}</version>
+		</dependency>
+	
 	</dependencies>
 
 	<build>
