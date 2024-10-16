@@ -1,5 +1,7 @@
 package com.example.demo.lucenesearch;
 
+import java.io.IOException;
+
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -9,6 +11,7 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
@@ -17,10 +20,9 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-
 /**
- * sourced from : Lucene Tutorial: Getting Started (with Examples) – HowToDoInJava
+ * sourced from : Lucene Tutorial: Getting Started (with Examples) –
+ * HowToDoInJava
  * https://howtodoinjava.com/lucene/lucene-index-search-examples/
  *
  * @author neon2021 on 2024/10/16
@@ -29,8 +31,38 @@ public class UseLuceneInMemoryTest {
 
     @Test
     public void test() throws IOException, ParseException {
-
         ByteBuffersDirectory directory = new ByteBuffersDirectory();
+        buildIndexAndSearchInIt(directory);
+        rebuildIndexAndSearchInIt(directory);
+    }
+
+    /**
+     * sourced from :
+     * https://github.com/elastic/elasticsearch/blob/main/server/src/test/java/org/elasticsearch/common/lucene/LuceneTests.java
+     * 
+     * @param directory
+     * @throws IOException
+     */
+    private void rebuildIndexAndSearchInIt(ByteBuffersDirectory directory) throws IOException {
+        Analyzer analyzer = new StandardAnalyzer();
+        IndexWriterConfig config = new IndexWriterConfig(analyzer);
+        IndexWriter indexWriter = new IndexWriter(directory, config);
+        Term deleteTerm = new Term("id", "1");
+        indexWriter.deleteDocuments(deleteTerm);
+        indexWriter.commit();
+        indexWriter.close();
+
+        DirectoryReader indexReader = DirectoryReader.open(directory);
+        outputInfoAboutDocNum(indexReader);
+        indexReader.close();
+    }
+
+    private void outputInfoAboutDocNum(DirectoryReader indexReader) {
+        System.out.printf("indexReader.numDocs()=%s,indexReader.numDeletedDocs()=%s,indexReader.maxDoc()=%s\n\n",
+                indexReader.numDocs(), indexReader.numDeletedDocs(), indexReader.maxDoc());
+    }
+
+    private void buildIndexAndSearchInIt(ByteBuffersDirectory directory) throws IOException, ParseException {
         Analyzer analyzer = new StandardAnalyzer();
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         IndexWriter indexWriter = new IndexWriter(directory, config);
@@ -72,7 +104,8 @@ public class UseLuceneInMemoryTest {
             System.out.println("Content: " + content);
         }
 
+        outputInfoAboutDocNum(directoryReader);
         directoryReader.close();
-        directory.close();
+        // directory.close();
     }
 }
