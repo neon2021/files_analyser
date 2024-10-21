@@ -31,7 +31,8 @@ DB = FakeDatabase()
 scan_proc = ScanningProcess()
 print("scan_proc.uuid: ",scan_proc.get_uuid())
 
-demo_file_info = FileInfo(path='xxx-yyyy-zzz/test.txt')
+demo_file_info = FileInfo()
+demo_file_info.path='xxx-yyyy-zzz/test.txt'
 # print('demo_file_info.get_path(): ',demo_file_info.get_path())
 print('demo_file_info: ', demo_file_info)
 print('demo_file_info: ', type(demo_file_info), type(demo_file_info).__name__)

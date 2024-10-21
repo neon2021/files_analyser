@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
 from ..utils.database import Database
 
+@dataclass
 class ModelBase(ABC):
     def set_db_instance(self, db:Database):
         self.database = db
