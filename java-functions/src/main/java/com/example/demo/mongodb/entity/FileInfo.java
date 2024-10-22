@@ -1,6 +1,7 @@
 package com.example.demo.mongodb.entity;
 
 import java.util.Date;
+import java.util.Map;
 
 import org.springframework.data.annotation.Id;
 
@@ -27,4 +28,5 @@ public class FileInfo {
     public String hashAlgorithm;
     public Long fileSize;
     public String mimeType;
+    public Map<String, String> metaInfo;
 }
