@@ -5,5 +5,5 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import com.example.demo.mongodb.entity.FileInfo;
 
 public interface FileInfoRepository extends MongoRepository<FileInfo, String> {
-    public FileInfo findByHash(String fileHash);
+    FileInfo findByHash(String fileHash); // TODO: need to know why this method could run??
 }

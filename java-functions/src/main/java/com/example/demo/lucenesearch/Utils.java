@@ -18,11 +18,14 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.parser.AutoDetectParserConfig;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.microsoft.ooxml.OOXMLParser;
 import org.apache.tika.parser.ocr.TesseractOCRConfig;
 import org.apache.tika.parser.pdf.PDFParser;
 import org.apache.tika.sax.BodyContentHandler;
+import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
 import java.io.File;
@@ -166,6 +169,31 @@ public class Utils {
                     metadata,
                     context);
             return ParsedFileInfo.builder().metadata(metadata).handler(handler).build();
+            // return "metadata: " + getMetadataAsString(metadata) + "; content: " +
+            // handler;
+        }
+
+        public static Metadata extractMetaInfoFrom(File file) throws IOException, TikaException, SAXException {
+            // If you do not want tesseract to be applied to your files see:
+            // https://cwiki.apache.org/confluence/display/TIKA/TikaOCR#TikaOCR-disable-ocr
+            // java.lang.IllegalArgumentException: Document contains at least one immense
+            // term in field="content" (whose UTF8 encoding is longer than the max length
+            // 32766), all of which were skipped. Please correct the analyzer to not produce
+            // such terms.
+            AutoDetectParserConfig config = new AutoDetectParserConfig();
+            ParseContext context = new ParseContext();
+            context.set(AutoDetectParserConfig.class, config);
+
+            AutoDetectParser pdfParser = new AutoDetectParser();
+            ContentHandler handler = new BodyContentHandler();
+            handler = new DummyContentHandler();
+            Metadata metadata = new Metadata();
+            pdfParser.parse(new FileInputStream(file), // FIXME: bug: Caused by: org.apache.tika.exception.ZeroByteFileException: InputStream must have > 0 bytes
+                    handler,
+                    metadata,
+                    context);
+            return metadata;
+//            return ParsedFileInfo.builder().metadata(metadata).handler(handler).build();
             // return "metadata: " + getMetadataAsString(metadata) + "; content: " +
             // handler;
         }

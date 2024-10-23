@@ -99,16 +99,25 @@
 		</dependency> -->
 		<!-- conflict with tika end -->
 
+		<!-- https://mvnrepository.com/artifact/junit/junit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
-			<version>5.8.0</version>
+			<version>5.10.0</version> <!-- Java, Spring Boot & JUnit 5 NoSuchMethod error on getExecutableInvoker - Stack Overflow
+https://stackoverflow.com/questions/78381933/java-spring-boot-junit-5-nosuchmethod-error-on-getexecutableinvoker -->
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
-			<version>5.8.0</version>
+			<version>5.10.0</version>
 			<scope>test</scope>
 	   </dependency>
 
