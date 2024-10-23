@@ -1,9 +1,7 @@
 package com.example.demo.lucenesearch;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.example.demo.mongodb.entity.FileInfo;
+import lombok.*;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,14 +30,25 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Utils {
     public static String getRealPath(String relativePath) {
         return Utils.class.getResource(relativePath).getPath();
+    }
+
+    public static File getFileFrom(String relativePath) {
+        return new File(Utils.class.getResource(relativePath).getPath());
     }
 
     public static String getMetadataAsString(Metadata metadata) {
@@ -65,7 +74,33 @@ public class Utils {
         return "";
     }
 
-    public static class FileIndexer {
+    public static FileInfo buildFileInfoEntity(File file, long elapsedDuration) {
+        FileInfoExtractor.FileBasicInfo fileBasicInfo = FileInfoExtractor.extractBasicInfoFrom(file);
+        System.out.println("file: " + file.getName() + ", fileBasicInfo: " + fileBasicInfo);
+
+        FileInfoExtractor.FileMetadata fileMetadata = FileInfoExtractor.extractMetaInfoFrom(file);
+
+        Map<String, String> metaInfo = fileMetadata.getMetadata();
+
+        return FileInfo.builder()
+                .fileName(file.getName())
+                .fileSize(fileBasicInfo.getSize())
+                .hash(Utils.getFileMD5(file))
+                .hashAlgorithm("MD5")
+                .mimeType(fileMetadata.getMimeType())
+                .osAccesTime(fileBasicInfo.getLastAccessTime())
+                .osCreateTime(fileBasicInfo.getCreationTime())
+                .osModifyTime(fileBasicInfo.getLastModifiedTime())
+                .path(file.getAbsolutePath())
+                .scanProcessUUID("scanProcUUID")
+                .uuid(UUID.randomUUID().toString())
+                .scannedTime(new Date())
+                .scanElapseDuration(elapsedDuration)
+                .metaInfo(metaInfo)
+                .build();
+    }
+
+    public static class FileInfoIndexer {
 
         public static void createIndex(String filePath, Directory directory)
                 throws IOException, TikaException, SAXException {
@@ -90,12 +125,12 @@ public class Utils {
                 String text = "";
                 if (StringUtils.equals(fileType, "docx")) {
                     // Extract text from Word document
-                    parsedFileInfo = extractTextFromWord(file);
+                    parsedFileInfo = FileInfoExtractor.extractTextFromWord(file);
                     text = "metadata: " + getMetadataAsString(parsedFileInfo.getMetadata()) + "; content: "
                             + parsedFileInfo.getHandler();
                 } else if (StringUtils.equals(fileType, "pdf")) {
                     // Extract text from PDF document
-                    parsedFileInfo = extractTextFromPDF(file);
+                    parsedFileInfo = FileInfoExtractor.extractTextFromPDF(file);
                     text = "metadata: " + getMetadataAsString(parsedFileInfo.getMetadata()) + "; content: "
                             + parsedFileInfo.getHandler();
                 }
@@ -114,6 +149,25 @@ public class Utils {
                 System.out.printf("ignore %s file: %s", fileType, filePath);
                 e.printStackTrace();
             }
+        }
+    }
+
+    public static class FileInfoExtractor {
+        public static FileBasicInfo extractBasicInfoFrom(File file) {
+            // sourced from "How to get file last modified date in Java - Mkyong.com" https://mkyong.com/java/how-to-get-the-file-last-modified-date-in-java/
+            BasicFileAttributes attr;
+            try {
+                attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+                return FileBasicInfo.builder()
+                        .lastAccessTime(Date.from(attr.lastAccessTime().toInstant()))
+                        .creationTime(Date.from(attr.creationTime().toInstant()))
+                        .lastModifiedTime(Date.from(attr.lastModifiedTime().toInstant()))
+                        .size(attr.size())
+                        .build();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return EmptyFileBasicInfo.builder().build();
         }
 
         /**
@@ -173,7 +227,7 @@ public class Utils {
             // handler;
         }
 
-        public static Metadata extractMetaInfoFrom(File file) throws IOException, TikaException, SAXException {
+        public static FileMetadata extractMetaInfoFrom(File file) {
             // If you do not want tesseract to be applied to your files see:
             // https://cwiki.apache.org/confluence/display/TIKA/TikaOCR#TikaOCR-disable-ocr
             // java.lang.IllegalArgumentException: Document contains at least one immense
@@ -188,14 +242,54 @@ public class Utils {
             ContentHandler handler = new BodyContentHandler();
             handler = new DummyContentHandler();
             Metadata metadata = new Metadata();
-            pdfParser.parse(new FileInputStream(file), // FIXME: bug: Caused by: org.apache.tika.exception.ZeroByteFileException: InputStream must have > 0 bytes
-                    handler,
-                    metadata,
-                    context);
-            return metadata;
-//            return ParsedFileInfo.builder().metadata(metadata).handler(handler).build();
-            // return "metadata: " + getMetadataAsString(metadata) + "; content: " +
-            // handler;
+            try {
+                pdfParser.parse(new FileInputStream(file), // FIXME: bug: Caused by: org.apache.tika.exception.ZeroByteFileException: InputStream must have > 0 bytes
+                        handler,
+                        metadata,
+                        context);
+                Map<String, String> metadataMap = Arrays.stream(metadata.names())
+                        .collect(Collectors.toMap(
+                                Function.identity(),
+                                metadata::get)
+                        );
+                return FileMetadata.builder().mimeType(metadata.get(Metadata.CONTENT_TYPE)).metadata(metadataMap).build();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (SAXException e) {
+                e.printStackTrace();
+            } catch (TikaException e) {
+                e.printStackTrace();
+            }
+            return EmptyFileMetadata.builder().build();
+        }
+
+        @Data
+        @NoArgsConstructor
+        @AllArgsConstructor
+        @Builder
+        @ToString
+        public static class FileMetadata {
+            String mimeType;
+            Map<String, String> metadata;
+        }
+
+        public static class EmptyFileMetadata extends FileMetadata {
+        }
+
+        @Data
+        @NoArgsConstructor
+        @AllArgsConstructor
+        @Builder
+        @ToString
+        public static class FileBasicInfo {
+            Date lastAccessTime;
+            Date creationTime;
+            Date lastModifiedTime;
+            long size;
+        }
+
+        public static class EmptyFileBasicInfo extends FileBasicInfo {
+
         }
     }
 

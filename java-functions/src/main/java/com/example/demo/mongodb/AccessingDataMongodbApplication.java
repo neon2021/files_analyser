@@ -1,13 +1,12 @@
 package com.example.demo.mongodb;
 
 import com.example.demo.lucenesearch.Utils;
-import com.example.demo.lucenesearch.Utils.FileIndexer;
+import com.example.demo.lucenesearch.Utils.FileInfoExtractor;
 import com.example.demo.mongodb.entity.FileInfo;
 import com.example.demo.mongodb.repository.FileInfoRepository;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.StopWatch;
-import org.apache.tika.metadata.Metadata;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -16,13 +15,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @PropertySource("classpath:application.properties")
 @SpringBootApplication
@@ -59,36 +53,10 @@ public class AccessingDataMongodbApplication implements CommandLineRunner {
                 continue;
             }
             StopWatch stopWatch = StopWatch.createStarted();
-            // sourced from "How to get file last modified date in Java - Mkyong.com" https://mkyong.com/java/how-to-get-the-file-last-modified-date-in-java/
-            BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
 
-            System.out.println("file: " + file.getName() + ", creationTime: " + attr.creationTime() + ", lastAccessTime: " + attr.lastAccessTime() + ", lastModifiedTime: " + attr.lastModifiedTime());
-
-            Metadata parsedMetaData = FileIndexer.extractMetaInfoFrom(file);
-
-            Map<String, String> metaInfo = Arrays.stream(parsedMetaData.names())
-                    .collect(Collectors.toMap(
-                            Function.identity(),
-                            parsedMetaData::get)
-                    );
-//            System.out.println("metaInfo: " + metaInfo);
             stopWatch.stop();
-            repository.save(FileInfo.builder()
-                    .fileName(file.getName())
-                    .fileSize(attr.size())
-                    .hash(Utils.getFileMD5(file))
-                    .hashAlgorithm("MD5")
-                    .mimeType(parsedMetaData.get(Metadata.CONTENT_TYPE))
-                    .osAccesTime(Date.from(attr.lastAccessTime().toInstant()))
-                    .osCreateTime(Date.from(attr.creationTime().toInstant()))
-                    .osModifyTime(Date.from(attr.lastModifiedTime().toInstant()))
-                    .path(file.getAbsolutePath())
-                    .scanProcessUUID("scanProcUUID")
-                    .uuid(UUID.randomUUID().toString())
-                    .scannedTime(new Date())
-                    .scanElapseDuration(stopWatch.getTime(TimeUnit.MILLISECONDS))
-                    .metaInfo(metaInfo)
-                    .build());
+            long elapsedMilliseconds = stopWatch.getTime(TimeUnit.MILLISECONDS);
+            repository.save(Utils.buildFileInfoEntity(file, elapsedMilliseconds));
         }
 
         // fetch all FileInfos

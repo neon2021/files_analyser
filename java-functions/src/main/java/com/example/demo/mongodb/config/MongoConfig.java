@@ -1,9 +1,13 @@
 package com.example.demo.mongodb.config;
 
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+
+import java.beans.ConstructorProperties;
 
 /**
  * TODO: function description
@@ -14,8 +18,15 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @EnableMongoRepositories("com.example.demo.mongodb.repository")
 public class MongoConfig extends AbstractMongoClientConfiguration {
 
+    @Value("${spring.data.mongodb.database}")
+    String mongodbName;
+
+//    @Autowired
+//    Environment env;
+
     @Override
     protected String getDatabaseName() {
-        return "springboot-mongo";
+        return mongodbName;
+//        return env.getProperty("spring.data.mongodb.database");
     }
 }

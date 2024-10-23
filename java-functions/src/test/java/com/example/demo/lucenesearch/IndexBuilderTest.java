@@ -24,7 +24,6 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.junit.jupiter.api.Test;
 
-import com.example.demo.lucenesearch.Utils.FileIndexer;
 import com.google.common.collect.Lists;
 
 public class IndexBuilderTest {
@@ -36,7 +35,7 @@ public class IndexBuilderTest {
         try (Directory directory = FSDirectory.open(Paths.get(indexPath));) {
             // Index PDF or Word document
             for (String filePath : filePathList) {
-                FileIndexer.createIndex(filePath, directory);
+                Utils.FileInfoIndexer.createIndex(filePath, directory);
             }
 
             // Optimize index
