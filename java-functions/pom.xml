@@ -8,11 +8,11 @@
 		<version>3.3.4</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.example</groupId>
-	<artifactId>demo</artifactId>
+	<groupId>com.neon</groupId>
+	<artifactId>file-analyser</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>demo</name>
-	<description>Demo project for Spring Boot</description>
+	<name>file-analyser</name>
+	<description>collect and analyse file info, and then distill invaluable information for further use</description>
 	<url/>
 	<licenses>
 		<license/>
