@@ -6,5 +6,5 @@ from .model.scanning_record import ScanningRecord
 from .model.file_info import FileInfo
 
 
-from .utils.helper import random_uuid_str, now_time_str, now_time_str_ymd_hms
+from .utils.helper import random_uuid_str, now_time_str, now_time_str_ymd_hms, get_file_md5
 from .utils.database import Database, FakeDatabase
