@@ -1,3 +1,11 @@
+# usage:
+# 
+# pydir="..."
+# mediadir="..."
+# 
+# python "$pydir/faster-whisper-experiment.py" -m faster-whisper-large-v3-turbo-ct2 -fp "$mediadir/xxx.mp4" -fmt srt
+# 
+
 # pip install -U huggingface_hub
 # export HF_ENDPOINT=https://hf-mirror.com
 # huggingface-cli download --resume-download gpt2 --local-dir gpt2
@@ -22,6 +30,7 @@ parser = argparse.ArgumentParser(
                     epilog='Text at the bottom of help')
 parser.add_argument('-fp', '--filepath')
 parser.add_argument('-m', '--model')
+parser.add_argument('-fmt', '--format', choices=['txt','srt'])
 args = parser.parse_args()
 
 print('args: %s'%(args))
@@ -40,6 +49,7 @@ file_path = args.filepath
 # command: nvidia-smi -l 3000
 
 model = args.model if args.model else 'distil-large-v3-ct2'
+file_format = args.format if args.format else 'txt'
 
 same_folder=os.path.expanduser("~/Downloads/huggingface_downloads/")
 model_dict={
@@ -61,7 +71,10 @@ print('device=%s, compute_type=%s'%(device, compute_type))
 
 start = datetime.now()
 only_file_name = os.path.splitext(os.path.basename(file_path))[0]
-output_srt_file_path= os.path.join( os.path.dirname(file_path),only_file_name+"_"+start.strftime("%H_%M_%S")+"_srt.txt")
+
+file_name_suffix= "_srt.txt" if file_format=='txt' else ".srt"
+
+output_srt_file_path= os.path.join( os.path.dirname(file_path),only_file_name+"_"+start.strftime("%H_%M_%S")+file_name_suffix)
 print('output_srt_file_path: %s'%(output_srt_file_path))
 
 
@@ -79,16 +92,37 @@ def conver_to_hms(sec:float)->str:
     hh,mm=divmod(mm,60)
     return '%02d:%02d:%02d'%(hh,mm,ss)
 
+def create_txt_line(row_num:int, segment)->str:
+    ''' for txt format, line:
+    [00:56:06 -> 00:56:06] Yeah.
+    '''
+    return """[%s -> %s] %s\n""" % (
+            conver_to_hms(segment.start), conver_to_hms(segment.end)
+                , segment.text
+        )
+
+def create_srt_line(row_num:int, segment)->str:
+    ''' for srt format, line:
+    1
+    [00:56:06 -> 00:56:06]
+    Yeah.
+    '''
+    return """%s
+[%s -> %s]
+%s\n\n""" % (row_num
+            , conver_to_hms(segment.start), conver_to_hms(segment.end)
+            , segment.text
+        )
+
 with open(output_srt_file_path,'w') as srt_out:
-    row_num=0
+    row_num=1
     for segment in segments:
-        # # line:
-        # # [1682.52s -> 1683.52s]  Yeah.
-        # line = "[%.2fs -> %.2fs] %s\n" % (segment.start, segment.end, segment.text)
-        
-        # line:
-        # [1682.52s -> 1683.52s]  Yeah.
-        line = "[%s -> %s] %s\n" % (conver_to_hms(segment.start), conver_to_hms(segment.end), segment.text)
+        if file_format=='txt':
+            line = create_txt_line(row_num, segment)
+            
+        if file_format=='srt':
+            line = create_srt_line(row_num, segment)
+            
         srt_out.write(line)
         if row_num % 50 ==0:
             srt_out.flush()

@@ -1,6 +1,7 @@
 package com.neon.file.analyser.mongodb.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
@@ -24,5 +25,15 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
     protected String getDatabaseName() {
         return mongodbName;
 //        return env.getProperty("spring.data.mongodb.database");
+    }
+
+    /**
+     * sourced from : "Spring BeanPostProcessor | Baeldung" https://www.baeldung.com/spring-beanpostprocessor
+     *
+     * @return
+     */
+    @Bean
+    public MongoPostProcessor mongoPostProcessor() {
+        return new MongoPostProcessor();
     }
 }

@@ -29,6 +29,7 @@ public class MongoPostProcessor  implements BeanPostProcessor {
         if (bean instanceof MappingMongoConverter) {
             MappingMongoConverter mongoConverter = (MappingMongoConverter) bean;
             mongoConverter.setMapKeyDotReplacement("_");
+            mongoConverter.afterPropertiesSet();
         }
         return BeanPostProcessor.super.postProcessAfterInitialization(bean, beanName);
 

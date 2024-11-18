@@ -25,6 +25,9 @@ public class FileInfo {
     public String hashAlgorithm;
     public Long fileSize;
     public String mimeType;
+    /**
+     * duration in milliseconds for collecting the information of the current file object
+     */
     public Long scanElapseDuration;
     public Map<String, String> metaInfo;
 }

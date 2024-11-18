@@ -1,6 +1,8 @@
 package com.neon.file.analyser.service;
 
 import com.neon.file.analyser.SpringTestBase;
+import com.neon.file.analyser.lucenesearch.Utils;
+import com.neon.file.analyser.mongodb.entity.FileInfo;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Test;
@@ -34,8 +36,10 @@ public class AnalyseStorageServiceTest extends SpringTestBase {
         int fileCount = 0;
 
         while (fileIterator.hasNext()) {
-//            File file = fileIterator.next();
-//            System.out.println(file.toString());
+            File file = fileIterator.next();
+            FileInfo fileInfo = Utils.buildFileInfoEntityWithMetrics(file);
+            System.out.println(fileInfo);
+
             fileCount++;
             if (fileCount > 1000) {
                 break;

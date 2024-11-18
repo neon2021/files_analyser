@@ -15,9 +15,6 @@ import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.assertj.core.api.SoftAssertions;
-import org.junit.After;
-import org.junit.Before;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -44,7 +41,7 @@ public class EliminateDuplicateTest extends SpringTestBase {
     public void test_insertFileInfoAndFindByHash() {
         repository.deleteAll();
 
-        FileInfo fileInfoEntity = Utils.buildFileInfoEntity(Utils.getFileFrom(testFileRelativePath), 0);
+        FileInfo fileInfoEntity = Utils.buildFileInfoEntityWithMetrics(Utils.getFileFrom(testFileRelativePath));
         FileInfo savedFileInfoEntity = repository.save(fileInfoEntity);
         System.out.println("after saving, uuid: " + savedFileInfoEntity.getUuid() + ",fileName: " + savedFileInfoEntity.getFileName() + ", path: " + savedFileInfoEntity.getPath());
 

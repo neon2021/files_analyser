@@ -2,9 +2,11 @@ package com.neon.file.analyser.lucenesearch;
 
 import com.neon.file.analyser.mongodb.entity.FileInfo;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field.Store;
@@ -39,9 +41,11 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class Utils {
     public static String getRealPath(String relativePath) {
         return Utils.class.getResource(relativePath).getPath();
@@ -65,8 +69,10 @@ public class Utils {
     public static String getFileMD5(File file) {
         try (FileInputStream inputStream = new FileInputStream(file);) {
             MessageDigest messageDigest = MessageDigest.getInstance("MD5");
-            byte[] fileBytes = IOUtils.toByteArray(inputStream);
-            messageDigest.update(fileBytes);
+            byte[] buffer = new byte[8 * 1024 * 1024];
+            while (IOUtils.read(inputStream, buffer) > 0) {
+                messageDigest.update(buffer);
+            }
             return DigestUtils.md2Hex(messageDigest.digest());
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -78,7 +84,8 @@ public class Utils {
         return "";
     }
 
-    public static FileInfo buildFileInfoEntity(File file, long elapsedDuration) {
+    public static FileInfo buildFileInfoEntityWithMetrics(File file) {
+        StopWatch stopWatch = StopWatch.createStarted();
         FileInfoExtractor.FileBasicInfo fileBasicInfo = FileInfoExtractor.extractBasicInfoFrom(file);
         System.out.println("file: " + file.getName() + ", fileBasicInfo: " + fileBasicInfo);
 
@@ -86,7 +93,7 @@ public class Utils {
 
         Map<String, String> metaInfo = fileMetadata.getMetadata();
 
-        return FileInfo.builder()
+        FileInfo fileInfo = FileInfo.builder()
                 .fileName(file.getName())
                 .fileSize(fileBasicInfo.getSize())
                 .hash(Utils.getFileMD5(file))
@@ -99,9 +106,14 @@ public class Utils {
                 .scanProcessUUID("scanProcUUID")
                 .uuid(UUID.randomUUID().toString())
                 .scannedTime(new Date())
-                .scanElapseDuration(elapsedDuration)
+//                .scanElapseDuration(elapsedDuration)
                 .metaInfo(metaInfo)
                 .build();
+
+        stopWatch.stop();
+        long elapsedMilliseconds = stopWatch.getTime(TimeUnit.MILLISECONDS);
+        fileInfo.setScanElapseDuration(elapsedMilliseconds);
+        return fileInfo;
     }
 
     public static class FileInfoIndexer {
@@ -265,14 +277,10 @@ public class Utils {
                                 metadata::get)
                         );
                 return FileMetadata.builder().mimeType(metadata.get(Metadata.CONTENT_TYPE)).metadata(metadataMap).build();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (SAXException e) {
-                e.printStackTrace();
-            } catch (TikaException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                log.error("extracting metadata from a file causes an error, context: file=" + file, e);
+                return EmptyFileMetadata.builder().errorMsg(e.getMessage()).build();
             }
-            return EmptyFileMetadata.builder().build();
         }
 
         @Data
@@ -283,6 +291,7 @@ public class Utils {
         public static class FileMetadata {
             String mimeType;
             Map<String, String> metadata;
+            String errorMsg;
         }
 
         public static class EmptyFileMetadata extends FileMetadata {

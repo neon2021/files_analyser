@@ -2,7 +2,6 @@ package com.neon.file.analyser.mongodb;
 
 import com.neon.file.analyser.main.AccessingDataMongodbApplication;
 import com.neon.file.analyser.mongodb.config.MongoConfig;
-import com.neon.file.analyser.mongodb.config.PostProcessorConfig;
 import com.neon.file.analyser.mongodb.repository.FileInfoRepository;
 import com.neon.file.analyser.service.AnalyseStorageService;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -17,7 +16,9 @@ import org.springframework.test.context.ContextConfiguration;
  * @author neon2021 on 2024/10/23
  */
 @ContextConfiguration
-@ComponentScans(@ComponentScan(basePackageClasses = {FileInfoRepository.class, MongoConfig.class, PostProcessorConfig.class, AnalyseStorageService.class},
+@ComponentScans(@ComponentScan(basePackageClasses = {FileInfoRepository.class, MongoConfig.class
+//        , PostProcessorConfig.class // this PostProcessorConfig is replaced with MongoConfig which includes MongoPostProcessor
+        , AnalyseStorageService.class},
         excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = AccessingDataMongodbApplication.class)} // "Spring @ComponentScan - Filter Types | Baeldung" https://www.baeldung.com/spring-componentscan-filter-type
 )
 )

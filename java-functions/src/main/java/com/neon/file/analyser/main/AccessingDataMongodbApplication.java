@@ -1,11 +1,11 @@
 package com.neon.file.analyser.main;
 
 import com.neon.file.analyser.lucenesearch.Utils;
+import com.neon.file.analyser.mongodb.config.MongoConfig;
 import com.neon.file.analyser.mongodb.entity.FileInfo;
 import com.neon.file.analyser.mongodb.repository.FileInfoRepository;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -15,11 +15,10 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @PropertySource("classpath:application.properties")
-@SpringBootApplication
-@EnableMongoRepositories(basePackageClasses = FileInfoRepository.class) // sourced from: "java - could not found bean
+@SpringBootApplication(scanBasePackageClasses = {FileInfoRepository.class, MongoConfig.class})
+@EnableMongoRepositories(basePackageClasses = {FileInfoRepository.class}) // sourced from: "java - could not found bean
 // for MongoRepository (Spring Boot) - Stack
 // Overflow"
 // https://stackoverflow.com/questions/45006266/could-not-found-bean-for-mongorepository-spring-boot
@@ -51,11 +50,7 @@ public class AccessingDataMongodbApplication implements CommandLineRunner {
                 addFileToBeginningAndDirToEnding(FileUtils.listFiles(directory, null, false), deque);
                 continue;
             }
-            StopWatch stopWatch = StopWatch.createStarted();
-
-            stopWatch.stop();
-            long elapsedMilliseconds = stopWatch.getTime(TimeUnit.MILLISECONDS);
-            repository.save(Utils.buildFileInfoEntity(file, elapsedMilliseconds));
+            repository.save(Utils.buildFileInfoEntityWithMetrics(file));
         }
 
         // fetch all FileInfos
