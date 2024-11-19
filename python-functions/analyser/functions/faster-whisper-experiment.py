@@ -104,11 +104,11 @@ def create_txt_line(row_num:int, segment)->str:
 def create_srt_line(row_num:int, segment)->str:
     ''' for srt format, line:
     1
-    [00:56:06 -> 00:56:06]
+    00:56:06,001 --> 00:56:06,901
     Yeah.
     '''
     return """%s
-[%s -> %s]
+%s,000 --> %s,000
 %s\n\n""" % (row_num
             , conver_to_hms(segment.start), conver_to_hms(segment.end)
             , segment.text
