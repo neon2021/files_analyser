@@ -1,3 +1,9 @@
 # for transcribing video and audio files
 faster_whisper==1.0.3
 ctranslate2==4.4.0
+
+# used in converting files in psb format to other formats
+psd-tools==1.10.4
+
+# create PDF
+reportlab==4.2.5
