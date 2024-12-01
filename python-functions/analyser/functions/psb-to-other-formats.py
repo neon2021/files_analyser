@@ -24,15 +24,23 @@ def convert_psb_to_image(input_psb, output_format: str):
     print("[%s]"%(datetime.now()),"format_name_as_param:", format_name_as_param, "new_fp:", new_fp)
     psd = PSDImage.open(input_psb)
     print("[%s]"%(datetime.now()),"PSDImage.open done")
+    try:
+        print("from PSDImage: image dimension: size=",psd.getSize(), 'depth=',psd.getDepth())
+    except Exception as e:
+        print(e)
 
     image = psd.composite()
+    try:
+        print("from image: image dimension: size=",image.getSize(), 'depth=',image.getDepth())
+    except Exception as e:
+        print(e)
     print("[%s]"%(datetime.now()),"psd.composite done")
     if format_name_as_param == "JPEG":
-        image.save(new_fp, format_name_as_param, quality=95)
+        image.save(new_fp, format_name_as_param, quality=95) # ERROR: Maximum supported image dimension is 65500 pixels
     elif format_name_as_param == "PNG":
         image.save(new_fp, format_name_as_param)
     elif format_name_as_param == "TIFF":
-        image.save(new_fp, format_name_as_param, compression="tiff_lzw")
+        image.save(new_fp, format_name_as_param, compression="tiff_lzw", bigtiff=True)
     else:
         print("no new image is created")
     print("[%s]"%(datetime.now()),"save process done")
@@ -52,5 +60,5 @@ if __name__ == "__main__":
 
     convert_psb_to_image(
         file_path,
-        "jpg",
+        "tif",
     )
