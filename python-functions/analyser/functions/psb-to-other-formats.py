@@ -1,5 +1,5 @@
 import os
-
+from datetime import datetime
 import argparse
 
 from psd_tools import PSDImage
@@ -21,20 +21,21 @@ def get_valid_format(format: str) -> str:
 def convert_psb_to_image(input_psb, output_format: str):
     format_name_as_param = get_valid_format(output_format)
     new_fp: str = new_file_path(input_psb, output_format)
-    print("format_name_as_param:", format_name_as_param, "new_fp:", new_fp)
+    print("[%s]"%(datetime.now()),"format_name_as_param:", format_name_as_param, "new_fp:", new_fp)
     psd = PSDImage.open(input_psb)
-    print("PSDImage.open done")
+    print("[%s]"%(datetime.now()),"PSDImage.open done")
 
     image = psd.composite()
-    print("psd.composite done")
-    if format_name_as_param == "jpg":
+    print("[%s]"%(datetime.now()),"psd.composite done")
+    if format_name_as_param == "JPEG":
         image.save(new_fp, format_name_as_param, quality=95)
-    elif format_name_as_param == "png":
+    elif format_name_as_param == "PNG":
         image.save(new_fp, format_name_as_param)
-    elif format_name_as_param == "tif":
+    elif format_name_as_param == "TIFF":
         image.save(new_fp, format_name_as_param, compression="tiff_lzw")
     else:
         print("no new image is created")
+    print("[%s]"%(datetime.now()),"save process done")
 
 
 if __name__ == "__main__":
